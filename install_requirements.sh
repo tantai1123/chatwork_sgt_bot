@@ -4,6 +4,6 @@
 pip install --no-cache-dir -r requirements.txt
 
 # Install action-specific dependencies
-for req_file in src/actions/requirements/requirements_*.txt; do
+for req_file in src/actions/requirements/*.txt; do
     pip install --no-cache-dir -r "$req_file"
 done
