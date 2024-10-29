@@ -3,7 +3,6 @@ Flask==3.0.3
 Werkzeug==3.0.4
 python-dotenv==1.0.0
 requests==2.32.3
-beautifulsoup4==4.12.3
 pytest==8.3.3
 gunicorn==20.1.0
 
@@ -14,13 +13,10 @@ celery==5.4.0
 # openai
 openai==1.48.0
 
-# action_pull_review
-PyGithub==1.59.0
-
+# database
 Flask-Migrate==4.0.7
 Flask-SQLAlchemy==3.1.1
 Flask-Caching==2.3.0
 
-google-auth-oauthlib==1.2.1
-google-api-python-client==2.149.0
-google-auth-httplib2==0.2.0
+# web
+beautifulsoup4==4.12.3

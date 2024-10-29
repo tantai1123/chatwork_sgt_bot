@@ -25,7 +25,11 @@ COPY --chown=user:user . .
 
 ENV PATH="/home/user/.local/bin:${PATH}"
 
-RUN pip3 install --no-cache-dir -r requirements.txt
+# Install dependencies
+RUN chmod +x install_requirements.sh
+RUN ./install_requirements.sh
+
+# Install app
 RUN pip3 install --user --editable .
 
 ENV FLASK_APP ${INSTALL_PATH}/run.py
