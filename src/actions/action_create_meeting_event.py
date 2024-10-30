@@ -111,22 +111,22 @@ class CreateMeetingEventAction(Action):
             available_links = [link for link in hangout_links if link["eventId"] not in event_ids]
 
             if available_links:
-                googleMeetUrl = random.choice(available_links)
-
+                google_meet_url_obj = random.choice(available_links)
+                google_meet_url = google_meet_url_obj["url"]
                 for link in hangout_links:
-                    if link["url"] == googleMeetUrl["url"]:
+                    if link["url"] == google_meet_url:
                         link["eventId"] = event_result.get('id')
                         break
 
-                googleMeetUrl = f'''
-                - Google Meet joining info:
-                Google meet video conferencing: {googleMeetUrl["url"]}
-                '''
+                google_meet_url = (
+                    "- Google Meet joining info:\n"
+                    f"Google meet video conferencing: {google_meet_url}"
+                )
                 self.save_links(hangout_links)
             else:
-                googleMeetUrl = 'There are no more conferences, please create one manually.'
+                google_meet_url = ("There are no more conferences, please create one manually.")
         else:
-            googleMeetUrl = ''
+            google_meet_url = None
 
         # Parse the start and end times
         start_datetime = datetime.fromisoformat(event_data["start"]["dateTime"])
@@ -139,7 +139,7 @@ class CreateMeetingEventAction(Action):
 
         datetime_formatted_result = f"{formatted_date} · {formatted_start_time} – {formatted_end_time}"
 
-        return self._format_response(event_result, datetime_formatted_result, googleMeetUrl)
+        return self._format_response(event_result, datetime_formatted_result, google_meet_url)
 
     def _get_calendar_service(self):
         try:
