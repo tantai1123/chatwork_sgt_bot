@@ -34,7 +34,7 @@ class CreateMeetingEventAction(Action):
             return "Cannot create google calendar event."
 
     def _get_data_from_message(self, message, web_helper):
-        current_time = datetime.now(ZoneInfo("Asia/Bangkok"))
+        current_time = datetime.now(ZoneInfo(TIMEZONE))
 
         prompt = f"""
         Please extract the following event information from the user input message. Use the current date and time: {current_time.isoformat()} (GMT+7, Asia/Ho_Chi_Minh timezone) as the reference point.'
@@ -98,9 +98,8 @@ class CreateMeetingEventAction(Action):
             event_ids = []
             hangout_links = self.load_links()
 
-            current_time = datetime.now(ZoneInfo('Asia/Ho_Chi_Minh')).isoformat()
+            current_time = datetime.now(ZoneInfo(TIMEZONE)).isoformat()
             event_list = service.events().list(calendarId=self.get_config_value("MEETING_CALENDAR_ID"), timeMin=current_time, orderBy='startTime', singleEvents=True).execute()
-
             events = event_list.get('items', [])
 
             for event in events:
@@ -119,8 +118,7 @@ class CreateMeetingEventAction(Action):
                         break
 
                 google_meet_url = (
-                    "- Google Meet joining info:\n"
-                    f"Google meet video conferencing: {google_meet_url}"
+                    f"-> Google Meet URL: {google_meet_url}"
                 )
                 self.save_links(hangout_links)
             else:
@@ -165,7 +163,6 @@ class CreateMeetingEventAction(Action):
     @staticmethod
     def _format_response(event_result: Dict[str, Any], datetime_formatted: str, google_meet_url: str) -> str:
         base_message = (
-            "[success]\n"
             "Meeting was created successfully.\n"
             "[info]\n"
             f"- Summary: {event_result.get('summary')}\n"
