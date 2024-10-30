@@ -2,8 +2,8 @@ import json
 import os
 import random
 from datetime import datetime
+from typing import Any, Dict
 from zoneinfo import ZoneInfo
-from typing import Dict, Any
 
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
@@ -20,6 +20,7 @@ SCOPES = [
 ]
 
 HANGOUT_LINKS_FILE = 'hangout_links.json'
+TIMEZONE= "Asia/Ho_Chi_Minh"
 
 @ActionRegistry.register("create_meeting_event", "Create an event in google calendar.")
 class CreateMeetingEventAction(Action):
@@ -44,18 +45,18 @@ class CreateMeetingEventAction(Action):
         End DateTime: Set the end time as 1 hour after the start time unless the user provides a specific end time.
         Conference: Conference data, if user request to create a conference(e.g., 'google meet', 'video call', 'Google MTG', etc.) set 1(type int), or set 0(type int) if user not request.
 
-        Return the information in the following JSON structure, using the timezone 'Asia/Ho_Chi_Minh':
+        Return the information in the following JSON structure, using the timezone '{TIMEZONE}':
 
         {{
           "summary": "<summary>",
           "description": "<description>",
           "start": {{
             "dateTime": "<start_date_time>",
-            "timeZone": "Asia/Ho_Chi_Minh"
+            "timeZone": "{TIMEZONE}"
           }},
           "end": {{
             "dateTime": "<end_date_time>",
-            "timeZone": "Asia/Ho_Chi_Minh"
+            "timeZone": "{TIMEZONE}"
           }},
           "isHasConference": <is_has_conference>
         }}
