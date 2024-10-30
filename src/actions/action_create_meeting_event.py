@@ -1,8 +1,11 @@
 import json
-from google.oauth2.service_account import Credentials
-from googleapiclient.discovery import build
+import os
+import random
 from datetime import datetime
 from zoneinfo import ZoneInfo
+
+from google.oauth2.service_account import Credentials
+from googleapiclient.discovery import build
 
 from src.actions.action_decorator import Action, ActionRegistry
 from src.config import Config
@@ -12,7 +15,10 @@ from src.utils.web_utils import WebHelper
 SCOPES = [
     "https://www.googleapis.com/auth/calendar",
     "https://www.googleapis.com/auth/calendar.readonly",
+    "https://www.googleapis.com/auth/calendar.events",
 ]
+
+HANGOUT_LINKS_FILE = 'hangout_links.json'
 
 @ActionRegistry.register("create_meeting_event", "Create an event in google calendar.")
 class CreateMeetingEventAction(Action):
@@ -35,6 +41,7 @@ class CreateMeetingEventAction(Action):
         Event Description: Additional details about the meeting if specified, or leave empty if not provided.
         Start DateTime: The start date and time of the meeting, in ISO format (YYYY-MM-DDTHH:MM:SS). Interpret any relative time references (e.g., 'next 30 min,' 'tomorrow at 10:00 AM') accurately based on the current time provided.
         End DateTime: Set the end time as 1 hour after the start time unless the user provides a specific end time.
+        Conference: Conference data, if user request to create a conference(e.g., 'google meet', 'video call', etc.) set 1(type int), or set 0(type int) if user not request.
 
         Return the information in the following JSON structure, using the timezone 'Asia/Ho_Chi_Minh':
 
@@ -48,7 +55,8 @@ class CreateMeetingEventAction(Action):
           "end": {{
             "dateTime": "<end_date_time>",
             "timeZone": "Asia/Ho_Chi_Minh"
-          }}
+          }},
+          "isHasConference": <is_has_conference>
         }}
 
         User input: {message}
@@ -66,11 +74,59 @@ class CreateMeetingEventAction(Action):
         )
         return json.loads(event_data)
 
+    def get_path(self, file_name):
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        return os.path.join(script_dir, file_name)
+
+    def load_links(self):
+        file_path = self.get_path(HANGOUT_LINKS_FILE)
+        with open(file_path, 'r') as file:
+            return json.load(file)
+
+    def save_links(self, hangout_links):
+        file_path = self.get_path(HANGOUT_LINKS_FILE)
+        with open(file_path, 'w') as file:
+            json.dump(hangout_links, file)
+
     def _create_calendar_event(self, event_data):
         service = self._get_calendar_service()
         event_result = service.events().insert(calendarId=self.get_config_value("MEETING_CALENDAR_ID"), body=event_data).execute()
-        logger.info(f"Event created: {event_result.get('htmlLink')}")
-        return event_result.get('htmlLink')        
+
+        if event_data.get("isHasConference") == 1:
+            event_ids = []
+            hangout_links = self.load_links()
+
+            current_time = datetime.now(ZoneInfo('Asia/Ho_Chi_Minh')).isoformat()
+            event_list = service.events().list(calendarId=self.get_config_value("MEETING_CALENDAR_ID"), timeMin=current_time, orderBy='startTime', singleEvents=True).execute()
+
+            events = event_list.get('items', [])
+
+            for event in events:
+                event_id = event.get('id')
+                if event_id:
+                    event_ids.append(event_id)
+
+            available_links = [link for link in hangout_links if link["eventId"] not in event_ids]
+
+            if available_links:
+                googleMeetUrl = random.choice(available_links)
+
+                for link in hangout_links:
+                    if link["url"] == googleMeetUrl["url"]:
+                        link["eventId"] = event_result.get('id')
+                        break
+
+                self.save_links(hangout_links)
+            else:
+                googleMeetUrl = 'There are no more conferences, please create one manually.'
+        else:
+            googleMeetUrl = 'No conference.'
+
+        return (
+            f"Meeting {event_result.get('summary')} was created successfully.\n"
+            f"Event URL: {event_result.get('htmlLink')}.\n"
+            f"Google meet URL: {googleMeetUrl}.\n"
+        )
 
     def _get_calendar_service(self):
         try:
