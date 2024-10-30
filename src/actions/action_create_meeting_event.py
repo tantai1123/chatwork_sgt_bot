@@ -116,6 +116,7 @@ class CreateMeetingEventAction(Action):
                         link["eventId"] = event_result.get('id')
                         break
 
+                googleMeetUrl = googleMeetUrl["url"]
                 self.save_links(hangout_links)
             else:
                 googleMeetUrl = 'There are no more conferences, please create one manually.'
@@ -124,8 +125,8 @@ class CreateMeetingEventAction(Action):
 
         return (
             f"Meeting {event_result.get('summary')} was created successfully.\n"
-            f"Event URL: {event_result.get('htmlLink')}.\n"
-            f"Google meet URL: {googleMeetUrl}.\n"
+            f"Event URL: {event_result.get('htmlLink')}\n"
+            f"Google meet URL: {googleMeetUrl}\n"
         )
 
     def _get_calendar_service(self):
