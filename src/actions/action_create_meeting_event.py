@@ -3,6 +3,7 @@ import os
 import random
 from datetime import datetime
 from zoneinfo import ZoneInfo
+from typing import Dict, Any
 
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
@@ -41,7 +42,7 @@ class CreateMeetingEventAction(Action):
         Event Description: Additional details about the meeting if specified, or leave empty if not provided.
         Start DateTime: The start date and time of the meeting, in ISO format (YYYY-MM-DDTHH:MM:SS). Interpret any relative time references (e.g., 'next 30 min,' 'tomorrow at 10:00 AM') accurately based on the current time provided.
         End DateTime: Set the end time as 1 hour after the start time unless the user provides a specific end time.
-        Conference: Conference data, if user request to create a conference(e.g., 'google meet', 'video call', etc.) set 1(type int), or set 0(type int) if user not request.
+        Conference: Conference data, if user request to create a conference(e.g., 'google meet', 'video call', 'Google MTG', etc.) set 1(type int), or set 0(type int) if user not request.
 
         Return the information in the following JSON structure, using the timezone 'Asia/Ho_Chi_Minh':
 
@@ -137,16 +138,7 @@ class CreateMeetingEventAction(Action):
 
         datetime_formatted_result = f"{formatted_date} · {formatted_start_time} – {formatted_end_time}"
 
-        return (
-            f"""
-            Meeting was created successfully.
-            [info]
-            - Summary: {event_result.get('summary')}
-            - Time: {datetime_formatted_result}
-            - Time zone: Asia/Ho_Chi_Minh
-            {googleMeetUrl}
-            [/info]"""
-        )
+        return self._format_response(event_result, datetime_formatted_result, googleMeetUrl)
 
     def _get_calendar_service(self):
         try:
@@ -168,3 +160,19 @@ class CreateMeetingEventAction(Action):
         except ValueError as e:
             logger.error(f"Error creating credentials: {str(e)}")
             raise
+
+    @staticmethod
+    def _format_response(event_result: Dict[str, Any], datetime_formatted: str, google_meet_url: str) -> str:
+        base_message = (
+            "[success]\n"
+            "Meeting was created successfully.\n"
+            "[info]\n"
+            f"- Summary: {event_result.get('summary')}\n"
+            f"- Time: {datetime_formatted}\n"
+            f"- Time zone: {TIMEZONE}"
+        )
+        
+        if google_meet_url:
+            base_message += f"\n{google_meet_url}"
+            
+        return f"{base_message}\n[/info]"
