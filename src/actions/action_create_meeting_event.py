@@ -135,14 +135,15 @@ class CreateMeetingEventAction(Action):
         datetime_formatted_result = f"{formatted_date} · {formatted_start_time} – {formatted_end_time}"
 
         return (
-            f"Meeting was created successfully.\n"
-            f"[info]\n"
-            f"- Summary: {event_result.get('summary')}\n"
-            f"- Time: {event_result.get('summary')}\n"
-            f"- Time zone: {datetime_formatted_result}"
-            f"- Google Meet joining info:"
-            f"Google meet video conferencing: {googleMeetUrl}\n"
-            f"[/info]\n"
+            f"""
+            Meeting was created successfully.
+            [info]"
+            - Summary: {event_result.get('summary')}
+            - Time: {datetime_formatted_result}
+            - Time zone: Asia/Ho_Chi_Minh
+            - Google Meet joining info:"
+            Google meet video conferencing: {googleMeetUrl}
+            [/info]"""
         )
 
     def _get_calendar_service(self):
