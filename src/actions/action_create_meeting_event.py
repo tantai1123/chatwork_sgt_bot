@@ -116,16 +116,34 @@ class CreateMeetingEventAction(Action):
                         link["eventId"] = event_result.get('id')
                         break
 
+                googleMeetUrl = googleMeetUrl["url"]
                 self.save_links(hangout_links)
             else:
                 googleMeetUrl = 'There are no more conferences, please create one manually.'
         else:
             googleMeetUrl = 'No conference.'
 
+        # Parse the start and end times
+        start_datetime = datetime.fromisoformat(event_data["start"]["dateTime"])
+        end_datetime = datetime.fromisoformat(event_data["end"]["dateTime"])
+
+        # Format the date and times
+        formatted_date = start_datetime.strftime("%A, %B %d")
+        formatted_start_time = start_datetime.strftime("%H:%M")
+        formatted_end_time = end_datetime.strftime("%H:%M")
+
+        datetime_formatted_result = f"{formatted_date} · {formatted_start_time} – {formatted_end_time}"
+
         return (
-            f"Meeting {event_result.get('summary')} was created successfully.\n"
-            f"Event URL: {event_result.get('htmlLink')}.\n"
-            f"Google meet URL: {googleMeetUrl}.\n"
+            f"""
+            Meeting was created successfully.
+            [info]"
+            - Summary: {event_result.get('summary')}
+            - Time: {datetime_formatted_result}
+            - Time zone: Asia/Ho_Chi_Minh
+            - Google Meet joining info:"
+            Google meet video conferencing: {googleMeetUrl}
+            [/info]"""
         )
 
     def _get_calendar_service(self):
