@@ -118,7 +118,7 @@ class CreateMeetingEventAction(Action):
                         break
 
                 google_meet_url = (
-                    f"-> Google Meet URL: {google_meet_url}"
+                    f"- Google Meet URL: {google_meet_url}"
                 )
                 self.save_links(hangout_links)
             else:
